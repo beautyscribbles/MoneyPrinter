@@ -102,95 +102,111 @@
             Fuji Codes
           </a>
         </p>
+        </p>
+     <div class="flex justify-center mt-8">
+       <div class="flex flex-col space-y-4">
+      <label for="videoSubject" class="text-blue-600">Subject</label>
+      <input type="text" name="videoSubject" id="videoSubject" class="border-2 border-blue-300 p-2 rounded-md focus:outline-none focus:border-blue-500" />
+      <label for="voice" class="text-blue-600">Voice</label>
+      <select name="voice" id="voice" class="border-2 border-blue-300 p-2 rounded-md focus:outline-none focus:border-blue-500">
+        <!-- Options omitted for brevity -->
+      </select>
+      <button id="generateButton" class="bg-blue-500 hover:bg-blue-700 duration-100 linear text-white px-4 py-2 rounded-md">
+        Generate
+      </button>
+      <button id="cancelButton" class="bg-red-500 hover:bg-red-700 duration-100 linear text-white px-4 py-2 rounded-md hidden">
+        Cancel
+      </button>
+      <div id="statusMessage" class="text-center text-red-500"></div>
+    </div>
+  </div>
+  <footer class="flex justify-center mt-8">
+    <div class="flex flex-col space-y-4">
+      <p class="text-center text-gray-700">
+        Made with ❤️ by
+        <a class="text-blue-600" target="href" href="https://github.com/FujiwaraChoki">Fuji Codes</a>
+      </p>
       </div>
     </footer>
+    
+      <script>
+    const videoSubject = document.querySelector("#videoSubject");
+    const voice = document.querySelector("#voice");
+    const generateButton = document.querySelector("#generateButton");
+    const cancelButton = document.querySelector("#cancelButton");
+    const statusMessage = document.querySelector("#statusMessage");
 
-    <script>
-      const videoSubject = document.querySelector("#videoSubject");
-      const voice = document.querySelector("#voice");
-      const generateButton = document.querySelector("#generateButton");
-      const cancelButton = document.querySelector("#cancelButton");
+    const cancelGeneration = () => {
+      console.log("Canceling generation...");
+      // Send request to /cancel
+      // Implement cancellation logic here
+    };
 
-      const cancelGeneration = () => {
-        console.log("Canceling generation...");
-        // Send request to /cancel
-        fetch("http://localhost:8080/api/cancel", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            alert(data.message);
-            console.log(data);
-          })
-          .catch((error) => {
-            alert("An error occurred. Please try again later.");
-            console.log(error);
-          });
+    const generateVideo = () => {
+      console.log("Generating video...");
+      // Validate inputs
+      if (!videoSubject.value.trim()) {
+        statusMessage.textContent = "Please enter a subject.";
+        return;
+      }
+      
+      // Disable button and change text
+      generateButton.disabled = true;
+      generateButton.textContent = "Generating...";
+      
+      // Show cancel button
+      cancelButton.classList.remove("hidden");
 
-        // Hide cancel button
-        cancelButton.classList.add("hidden");
+      // Get values from input fields
+      const videoSubjectValue = videoSubject.value;
+      const voiceValue = voice.value;
 
-        // Enable generate button
-        generateButton.disabled = false;
-        generateButton.classList.remove("hidden");
+      // Construct data to be sent to the server
+      const data = {
+        videoSubject: videoSubjectValue,
+        voice: voiceValue,
       };
 
-      const generateVideo = () => {
-        console.log("Generating video...");
-        // Disable button and change text
-        generateButton.disabled = true;
-        generateButton.classList.add("hidden");
-
-        // Show cancel button
-        cancelButton.classList.remove("hidden");
-
-        // Get values from input fields
-        const videoSubjectValue = videoSubject.value;
-        const voiceValue = voice.value;
-
-        const url = "http://localhost:8080/api/generate";
-
-        // Construct data to be sent to the server
-        const data = {
-          videoSubject: videoSubjectValue,
-          voice: voiceValue,
-        };
-
-        // Send the actual request to the server
-        fetch(url, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            alert(data.message);
-            // Hide cancel button after generation is complete
-            generateButton.disabled = false;
-            cancelButton.classList.add("hidden");
-          })
-          .catch((error) => {
-            alert("An error occurred. Please try again later.");
-            console.log(error);
-          });
-      };
-
-      generateButton.addEventListener("click", generateVideo);
-      cancelButton.addEventListener("click", cancelGeneration);
-
-      videoSubject.addEventListener("keyup", (event) => {
-        if (event.key === "Enter") {
-          generateVideo();
+      // Send the actual request to the server
+      fetch("http://localhost:8080/api/generate", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to generate video.");
         }
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        statusMessage.textContent = data.message;
+        // Hide cancel button after generation is complete
+        cancelButton.classList.add("hidden");
+        generateButton.disabled = false;
+        generateButton.textContent = "Generate";
+      })
+      .catch((error) => {
+        statusMessage.textContent = "An error occurred. Please try again later.";
+        console.log(error);
       });
-    </script>
+    };
+
+    generateButton.addEventListener("click", generateVideo);
+    cancelButton.addEventListener("click", cancelGeneration);
+
+    videoSubject.addEventListener("keyup", (event) => {
+      if (event.key === "Enter") {
+        generateVideo();
+      }
+    });
+  </script>
+
+      
+
   </body>
 </html>
