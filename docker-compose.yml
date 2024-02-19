@@ -32,6 +32,6 @@ services:
     depends_on:
       - frontend
     restart: always
-
+    dependency: flexibility
 volumes:
   files:
